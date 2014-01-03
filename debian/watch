@@ -1,0 +1,4 @@
+# Compulsory line, this is a version 3 file
+version=3
+
+https://pypi.python.org/packages/source/a/astroid/astroid-(.*)\.tar.gz
