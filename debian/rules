@@ -17,4 +17,5 @@ override_dh_install:
 	NO_SETUPTOOLS=1 python3 setup.py install --no-compile \
 			--root=$(CURDIR)/debian/$(PKG3)/ \
 			--install-layout=deb
-
+	# remove tests files
+	rm -rf debian/*/usr/lib/python*/*-packages/astroid/test
