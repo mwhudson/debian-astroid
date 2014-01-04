@@ -19,3 +19,6 @@ override_dh_install:
 			--install-layout=deb
 	# remove tests files
 	rm -rf debian/*/usr/lib/python*/*-packages/astroid/test
+
+override_dh_installdocs:
+	dh_installdocs -i README
