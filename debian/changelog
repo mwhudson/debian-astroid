@@ -1,3 +1,11 @@
+astroid (1.0.1-2) UNRELEASED; urgency=low
+
+  * debian/copyright
+    - document test/data/SSL1/Connection1.py copyright, as pointed out by
+      Thorsten Alteholz
+
+ -- Sandro Tosi <morph@debian.org>  Sat, 04 Jan 2014 19:50:54 +0100
+
 astroid (1.0.1-1) unstable; urgency=low
 
   * Initial release (Closes: #734075)
