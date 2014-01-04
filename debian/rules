@@ -1,0 +1,24 @@
+#!/usr/bin/make -f
+# -*- makefile -*-
+
+# Uncomment this to turn on verbose mode.
+#export DH_VERBOSE=1
+
+PKG2=python-astroid
+PKG3=python3-astroid
+
+%:
+	dh $@ --with python2,python3
+
+override_dh_install:
+	NO_SETUPTOOLS=1 python setup.py install --no-compile \
+			--root=$(CURDIR)/debian/$(PKG2)/ \
+			--install-layout=deb
+	NO_SETUPTOOLS=1 python3 setup.py install --no-compile \
+			--root=$(CURDIR)/debian/$(PKG3)/ \
+			--install-layout=deb
+	# remove tests files
+	rm -rf debian/*/usr/lib/python*/*-packages/astroid/test
+
+override_dh_installdocs:
+	dh_installdocs -i README
