@@ -6,8 +6,8 @@ Uploaders: Sandro Tosi <morph@debian.org>
 Build-Depends: debhelper (>= 9.0.0), python, python3
 Standards-Version: 3.9.5
 Homepage: http://www.astroid.org/
-#Vcs-Git: git://git.debian.org/collab-maint/astroid.git
-#Vcs-Browser: http://git.debian.org/?p=collab-maint/astroid.git;a=summary
+Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/astroid/trunk/
+Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/astroid/trunk/
 
 Package: python-astroid
 Architecture: all
