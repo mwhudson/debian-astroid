@@ -1,4 +1,4 @@
-astroid (1.0.1-2) UNRELEASED; urgency=low
+astroid (1.0.1-2) unstable; urgency=low
 
   * debian/copyright
     - document test/data/SSL1/Connection1.py copyright, as pointed out by
@@ -7,7 +7,7 @@ astroid (1.0.1-2) UNRELEASED; urgency=low
     - fix GI introspection issues; thanks to Leo Iannacone for the report;
       Closes: #744225
 
- -- Sandro Tosi <morph@debian.org>  Sat, 19 Apr 2014 19:54:00 +0200
+ -- Sandro Tosi <morph@debian.org>  Sat, 19 Apr 2014 19:57:08 +0200
 
 astroid (1.0.1-1) unstable; urgency=low
 
