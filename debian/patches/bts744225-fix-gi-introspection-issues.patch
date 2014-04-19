@@ -1,0 +1,55 @@
+# HG changeset patch
+# User Sylvain Thénault <sylvain.thenault@logilab.fr>
+# Date 1396951874 -7200
+# Node ID fa1312a4d7aa8823f0dc5edf9f41ac9687ed7fa1
+# Parent  5e900cde9eb9c45f1472fa9c52e0d1900e978121
+backport gi related changes from pylint-brain, closes #19 and #22
+
+diff --git a/brain/py2gi.py b/brain/py2gi.py
+--- a/brain/py2gi.py
++++ b/brain/py2gi.py
+@@ -5,6 +5,7 @@
+ 
+ import inspect
+ import sys
++import re
+ 
+ from astroid import MANAGER, AstroidBuildingException
+ from astroid.builder import AstroidBuilder
+@@ -12,6 +13,7 @@
+ 
+ _inspected_modules = {}
+ 
++_identifier_re = r'^[A-Za-z_]\w*$'
+ 
+ def _gi_build_stub(parent):
+     """
+@@ -23,9 +25,13 @@
+     constants = {}
+     methods = {}
+     for name in dir(parent):
+-        if not name or name.startswith("__"):
+-            # GLib.IConv has a parameter named "" :/
++        if name.startswith("__"):
+             continue
++
++        # Check if this is a valid name in python
++        if not re.match(_identifier_re, name):
++            continue
++
+         try:
+             obj = getattr(parent, name)
+         except:
+@@ -46,6 +52,12 @@
+               str(obj).startswith("<GType ") or
+               inspect.isdatadescriptor(obj)):
+             constants[name] = 0
++        elif callable(obj):
++            # Fall back to a function for anything callable
++            functions[name] = obj
++        else:
++            # Assume everything else is some manner of constant
++            constants[name] = 0
+ 
+     ret = ""
+ 
