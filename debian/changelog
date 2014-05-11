@@ -5,8 +5,10 @@ astroid (1.1.1-1) UNRELEASED; urgency=medium
     - switch me to Maintainer (team to Uploaders)
   * debian/copyright
     - extend upstream copyright years
+  * debian/patches/*
+    - removed, merged upstream
 
- -- Sandro Tosi <morph@debian.org>  Sun, 11 May 2014 12:42:49 +0200
+ -- Sandro Tosi <morph@debian.org>  Sun, 11 May 2014 12:46:31 +0200
 
 astroid (1.0.1-2) unstable; urgency=low
 
