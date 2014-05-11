@@ -1,3 +1,15 @@
+astroid (1.1.1-1) unstable; urgency=medium
+
+  * New upstream release; Closes: #735327
+  * debian/control
+    - switch me to Maintainer (team to Uploaders)
+  * debian/copyright
+    - extend upstream copyright years
+  * debian/patches/*
+    - removed, merged upstream
+
+ -- Sandro Tosi <morph@debian.org>  Sun, 11 May 2014 17:43:01 +0200
+
 astroid (1.0.1-2) unstable; urgency=low
 
   * debian/copyright
