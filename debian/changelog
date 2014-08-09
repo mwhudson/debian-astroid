@@ -1,3 +1,9 @@
+astroid (1.2.0-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Sandro Tosi <morph@debian.org>  Sat, 09 Aug 2014 14:47:03 +0100
+
 astroid (1.1.1-1) unstable; urgency=medium
 
   * New upstream release; Closes: #735327
