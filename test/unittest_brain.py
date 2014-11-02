@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License along
 # with logilab-astng. If not, see <http://www.gnu.org/licenses/>.
 """Tests for basic functionality in astroid.brain."""
+import sys
 
 from logilab.common.testlib import TestCase, unittest_main
 
@@ -65,7 +66,7 @@ class NamedTupleTest(TestCase):
         for base in klass.ancestors():
             if base.name == 'X':
                 break
-        self.assertItemsEqual(["a", "b", "c"], base.instance_attrs.keys())
+        self.assertCountEqual(["a", "b", "c"], base.instance_attrs.keys())
 
     def test_namedtuple_inference_failure(self):
         klass = test_utils.extract_node("""
@@ -75,6 +76,23 @@ class NamedTupleTest(TestCase):
            return __(namedtuple("foo", fields))
         """)
         self.assertIs(bases.YES, klass.infer().next())
+
+
+    def test_namedtuple_advanced_inference(self):
+        if sys.version_info[0] > 2:
+            self.skipTest('Currently broken for Python 3.')
+        # urlparse return an object of class ParseResult, which has a
+        # namedtuple call and a mixin as base classes
+        result = test_utils.extract_node("""
+        import urlparse
+
+        result = __(urlparse.urlparse('gopher://'))
+        """)
+        instance = result.infer().next()
+        self.assertEqual(len(instance.getattr('scheme')), 1)
+        self.assertEqual(len(instance.getattr('port')), 1)
+        with self.assertRaises(astroid.NotFoundError):
+            instance.getattr('foo')
 
 
 if __name__ == '__main__':

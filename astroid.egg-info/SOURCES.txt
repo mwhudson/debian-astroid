@@ -47,6 +47,9 @@ setup.py
 ./test/data/noendingnewline.py
 ./test/data/nonregr.py
 ./test/data/notall.py
+./test/data2/__init__.py
+./test/data2/clientmodule_test.py
+./test/data2/suppliermodule_test.py
 ./test/data/SSL1/Connection1.py
 ./test/data/SSL1/__init__.py
 ./test/data/appl/__init__.py
@@ -60,9 +63,6 @@ setup.py
 ./test/data/lmfp/foo.py
 ./test/data/module1abs/__init__.py
 ./test/data/module1abs/core.py
-./test/data2/__init__.py
-./test/data2/clientmodule_test.py
-./test/data2/suppliermodule_test.py
 astroid.egg-info/PKG-INFO
 astroid.egg-info/SOURCES.txt
 astroid.egg-info/dependency_links.txt
@@ -85,6 +85,9 @@ test/data/module2.py
 test/data/noendingnewline.py
 test/data/nonregr.py
 test/data/notall.py
+test/data2/__init__.py
+test/data2/clientmodule_test.py
+test/data2/suppliermodule_test.py
 test/data/SSL1/Connection1.py
 test/data/SSL1/__init__.py
 test/data/appl/__init__.py
@@ -98,9 +101,6 @@ test/data/lmfp/__init__.py
 test/data/lmfp/foo.py
 test/data/module1abs/__init__.py
 test/data/module1abs/core.py
-test/data2/__init__.py
-test/data2/clientmodule_test.py
-test/data2/suppliermodule_test.py
 test/regrtest_data/descriptor_crash.py
 test/regrtest_data/recursion.py
 test/regrtest_data/absimp/__init__.py

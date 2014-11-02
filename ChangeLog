@@ -1,6 +1,35 @@
 Change log for the astroid package (used to be astng)
 =====================================================
 
+2014-08-24 -- 1.2.1
+
+    * Fix a crash occurred when inferring decorator call chain.
+      Closes issue #42.
+
+    * Set the parent of vararg and kwarg nodes when inferring them.
+      Closes issue #43.
+
+    * namedtuple inference knows about '_fields' attribute.
+
+    * enum members knows about the methods from the enum class.
+
+    * Name inference will lookup in the parent function
+      of the current scope, in case searching in the current scope
+      fails.
+
+    * Inference of the functional form of the enums takes into
+      consideration the various inputs that enums accepts.
+
+    * The inference engine handles binary operations (add, mul etc.)
+      between instances.
+
+    * Fix an infinite loop in the inference, by returning a copy
+      of instance attributes, when calling 'instance_attr'.
+      Closes issue #34 (patch by Emile Anclin).
+
+    * Don't crash when trying to infer unbound object.__new__ call.
+      Closes issue #11.
+
 2014-07-25  --  1.2.0
 
     * Function nodes can detect decorator call chain and see if they are
