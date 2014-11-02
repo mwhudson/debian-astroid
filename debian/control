@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Sandro Tosi <morph@debian.org>
 Uploaders: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
 Build-Depends: debhelper (>= 9.0.0), python, python3
-Standards-Version: 3.9.5
+Standards-Version: 3.9.6
 Homepage: http://www.astroid.org/
 Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/astroid/trunk/
 Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/astroid/trunk/
