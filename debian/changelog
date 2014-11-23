@@ -1,3 +1,12 @@
+astroid (1.2.1-2) UNRELEASED; urgency=medium
+
+  * debian/patches/e24cacb15e2e152db155fdca9197a8d1bf9ce235.patch
+    - Never load C extensions that are not from the standard library and also
+      never load any compiled Python files; thanks to Jakub Wilk for the report;
+      Closes: #591676
+
+ -- Sandro Tosi <morph@debian.org>  Sun, 23 Nov 2014 13:33:38 +0000
+
 astroid (1.2.1-1) unstable; urgency=medium
 
   * New upstream release

@@ -1,0 +1,383 @@
+# HG changeset patch
+# User Torsten Marek <shlomme@gmail.com>
+# Date 1415534030 -3600
+# Node ID e24cacb15e2e152db155fdca9197a8d1bf9ce235
+# Parent  8b1f838e213786440a65bbfcb2ba4f743caa19ca
+Never load C extensions that are not from the standard library and also never load any compiled Python files.
+
+Fixes pylint issue #347.
+
+--- a/manager.py
++++ b/manager.py
+@@ -22,16 +22,16 @@ from various source and using a cache of
+ 
+ __docformat__ = "restructuredtext en"
+ 
++import imp
+ import os
+ from os.path import dirname, join, isdir, exists
+ from warnings import warn
++import zipimport
+ 
+ from logilab.common.configuration import OptionsProviderMixIn
+ 
+ from astroid.exceptions import AstroidBuildingException
+-from astroid.modutils import NoSourceFile, is_python_source, \
+-     file_from_modpath, load_module_from_name, modpath_from_file, \
+-     get_module_files, get_source_file, zipimport
++from astroid import modutils
+ 
+ 
+ def astroid_wrapper(func, modname):
+@@ -90,13 +90,13 @@ class AstroidManager(OptionsProviderMixI
+     def ast_from_file(self, filepath, modname=None, fallback=True, source=False):
+         """given a module name, return the astroid object"""
+         try:
+-            filepath = get_source_file(filepath, include_no_ext=True)
++            filepath = modutils.get_source_file(filepath, include_no_ext=True)
+             source = True
+-        except NoSourceFile:
++        except modutils.NoSourceFile:
+             pass
+         if modname is None:
+             try:
+-                modname = '.'.join(modpath_from_file(filepath))
++                modname = '.'.join(modutils.modpath_from_file(filepath))
+             except ImportError:
+                 modname = filepath
+         if modname in self.astroid_cache and self.astroid_cache[modname].file == filepath:
+@@ -109,29 +109,36 @@ class AstroidManager(OptionsProviderMixI
+         raise AstroidBuildingException('unable to get astroid for file %s' %
+                                        filepath)
+ 
++    def _build_stub_module(self, modname):
++        from astroid.builder import AstroidBuilder
++        return AstroidBuilder(self).string_build('', modname)
++
+     def ast_from_module_name(self, modname, context_file=None):
+         """given a module name, return the astroid object"""
+         if modname in self.astroid_cache:
+             return self.astroid_cache[modname]
+         if modname == '__main__':
+-            from astroid.builder import AstroidBuilder
+-            return AstroidBuilder(self).string_build('', modname)
++            return self._build_stub_module(modname)
+         old_cwd = os.getcwd()
+         if context_file:
+             os.chdir(dirname(context_file))
+         try:
+-            filepath = self.file_from_module_name(modname, context_file)
+-            if filepath is not None and not is_python_source(filepath):
++            filepath, mp_type = self.file_from_module_name(modname, context_file)
++            if mp_type == modutils.PY_ZIPMODULE:
+                 module = self.zip_import_data(filepath)
+                 if module is not None:
+                     return module
+-            if filepath is None or not is_python_source(filepath):
++            elif mp_type in (imp.C_BUILTIN, imp.C_EXTENSION):
++                if mp_type == imp.C_EXTENSION and not modutils.is_standard_module(modname):
++                    return self._build_stub_module(modname)
+                 try:
+-                    module = load_module_from_name(modname)
++                    module = modutils.load_module_from_name(modname)
+                 except Exception, ex:
+                     msg = 'Unable to load module %s (%s)' % (modname, ex)
+                     raise AstroidBuildingException(msg)
+                 return self.ast_from_module(module, modname)
++            elif mp_type == imp.PY_COMPILED:
++                raise AstroidBuildingException("Unable to load compiled module %s" % (modname,))
+             return self.ast_from_file(filepath, modname, fallback=False)
+         finally:
+             os.chdir(old_cwd)
+@@ -163,8 +170,8 @@ class AstroidManager(OptionsProviderMixI
+             value = self._mod_file_cache[(modname, contextfile)]
+         except KeyError:
+             try:
+-                value = file_from_modpath(modname.split('.'),
+-                                          context_file=contextfile)
++                value = modutils.file_info_from_modpath(
++                    modname.split('.'), context_file=contextfile)
+             except ImportError, ex:
+                 msg = 'Unable to load module %s (%s)' % (modname, ex)
+                 value = AstroidBuildingException(msg)
+@@ -181,7 +188,7 @@ class AstroidManager(OptionsProviderMixI
+         try:
+             # some builtin modules don't have __file__ attribute
+             filepath = module.__file__
+-            if is_python_source(filepath):
++            if modutils.is_python_source(filepath):
+                 return self.ast_from_file(filepath, modname)
+         except AttributeError:
+             pass
+@@ -242,7 +249,7 @@ class AstroidManager(OptionsProviderMixI
+         project = Project(project_name)
+         for something in files:
+             if not exists(something):
+-                fpath = file_from_modpath(something.split('.'))
++                fpath = modutils.file_from_modpath(something.split('.'))
+             elif isdir(something):
+                 fpath = join(something, '__init__.py')
+             else:
+@@ -257,8 +264,8 @@ class AstroidManager(OptionsProviderMixI
+             # recurse in package except if __init__ was explicitly given
+             if astroid.package and something.find('__init__') == -1:
+                 # recurse on others packages / modules if this is a package
+-                for fpath in get_module_files(dirname(astroid.file),
+-                                              black_list):
++                for fpath in modutils.get_module_files(dirname(astroid.file),
++                                                       black_list):
+                     astroid = func_wrapper(self.ast_from_file, fpath)
+                     if astroid is None or astroid.name == base_name:
+                         continue
+--- a/modutils.py
++++ b/modutils.py
+@@ -20,8 +20,8 @@
+ :type PY_SOURCE_EXTS: tuple(str)
+ :var PY_SOURCE_EXTS: list of possible python source file extension
+ 
+-:type STD_LIB_DIR: str
+-:var STD_LIB_DIR: directory where standard modules are located
++:type STD_LIB_DIRS: list of str
++:var STD_LIB_DIRS: directories where standard modules are located
+ 
+ :type BUILTIN_MODULES: dict
+ :var BUILTIN_MODULES: dictionary with builtin module names has key
+@@ -30,28 +30,17 @@ from __future__ import with_statement
+ 
+ __docformat__ = "restructuredtext en"
+ 
+-import sys
++import imp
+ import os
++import sys
+ from os.path import splitext, join, abspath, isdir, dirname, exists
+-from imp import find_module, load_module, C_BUILTIN, PY_COMPILED, PKG_DIRECTORY
+ from distutils.sysconfig import get_python_lib
+ from distutils.errors import DistutilsPlatformError
++import zipimport
+ 
+-try:
+-    import zipimport
+-except ImportError:
+-    zipimport = None
+-
+-ZIPFILE = object()
+-
++PY_ZIPMODULE = object()
+ from logilab.common import _handle_blacklist
+ 
+-# Notes about STD_LIB_DIR
+-# Consider arch-specific installation for STD_LIB_DIR definition
+-# :mod:`distutils.sysconfig` contains to much hardcoded values to rely on
+-#
+-# :see: `Problems with /usr/lib64 builds <http://bugs.python.org/issue1294959>`_
+-# :see: `FHS <http://www.pathname.com/fhs/pub/fhs-2.3.html#LIBLTQUALGTALTERNATEFORMATESSENTIAL>`_
+ if sys.platform.startswith('win'):
+     PY_SOURCE_EXTS = ('py', 'pyw')
+     PY_COMPILED_EXTS = ('dll', 'pyd')
+@@ -59,12 +48,25 @@ else:
+     PY_SOURCE_EXTS = ('py',)
+     PY_COMPILED_EXTS = ('so',)
+ 
++# Notes about STD_LIB_DIRS
++# Consider arch-specific installation for STD_LIB_DIR definition
++# :mod:`distutils.sysconfig` contains to much hardcoded values to rely on
++#
++# :see: `Problems with /usr/lib64 builds <http://bugs.python.org/issue1294959>`_
++# :see: `FHS <http://www.pathname.com/fhs/pub/fhs-2.3.html#LIBLTQUALGTALTERNATEFORMATESSENTIAL>`_
+ try:
+-    STD_LIB_DIR = get_python_lib(standard_lib=1)
++    # The explicit prefix is to work around a patch in virtualenv that
++    # replaces the 'real' sys.prefix (i.e. the location of the binary)
++    # with the prefix from which the virtualenv was created. This throws
++    # off the detection logic for standard library modules, thus the
++    # workaround.
++    STD_LIB_DIRS = [
++        get_python_lib(standard_lib=True, prefix=sys.prefix),
++        get_python_lib(standard_lib=True)]
+ # get_python_lib(standard_lib=1) is not available on pypy, set STD_LIB_DIR to
+ # non-valid path, see https://bugs.pypy.org/issue1164
+ except DistutilsPlatformError:
+-    STD_LIB_DIR = '//'
++    STD_LIB_DIRS = []
+ 
+ EXT_LIB_DIR = get_python_lib()
+ 
+@@ -142,8 +144,8 @@ def load_module_from_modpath(parts, path
+             # because it may have been indirectly loaded through a parent
+             module = sys.modules.get(curname)
+         if module is None:
+-            mp_file, mp_filename, mp_desc = find_module(part, path)
+-            module = load_module(curname, mp_file, mp_filename, mp_desc)
++            mp_file, mp_filename, mp_desc = imp.find_module(part, path)
++            module = imp.load_module(curname, mp_file, mp_filename, mp_desc)
+         if prevmodule:
+             setattr(prevmodule, part, module)
+         _file = getattr(module, '__file__', '')
+@@ -228,8 +230,10 @@ def modpath_from_file(filename, extrapat
+         filename, ', \n'.join(sys.path)))
+ 
+ 
+-
+ def file_from_modpath(modpath, path=None, context_file=None):
++    return file_info_from_modpath(modpath, path, context_file)[0]
++
++def file_info_from_modpath(modpath, path=None, context_file=None):
+     """given a mod path (i.e. splitted module / package name), return the
+     corresponding file, giving priority to source file over precompiled
+     file if it exists
+@@ -254,7 +258,7 @@ def file_from_modpath(modpath, path=None
+ 
+     :raise ImportError: if there is no such module in the directory
+ 
+-    :rtype: str or None
++    :rtype: (str or None, import type)
+     :return:
+       the path to the module's file or None if it's an integrated
+       builtin module such as 'sys'
+@@ -271,7 +275,7 @@ def file_from_modpath(modpath, path=None
+             return _file_from_modpath(modpath, path, context)
+     elif modpath == ['os', 'path']:
+         # FIXME: currently ignoring search_path...
+-        return os.path.__file__
++        return os.path.__file__, imp.PY_SOURCE
+     return _file_from_modpath(modpath, path, context)
+ 
+ 
+@@ -399,7 +403,7 @@ def is_python_source(filename):
+     return splitext(filename)[1][1:] in PY_SOURCE_EXTS
+ 
+ 
+-def is_standard_module(modname, std_path=(STD_LIB_DIR,)):
++def is_standard_module(modname, std_path=None):
+     """try to guess if a module is a standard python module (by default,
+     see `std_path` parameter's description)
+ 
+@@ -430,6 +434,8 @@ def is_standard_module(modname, std_path
+     filename = abspath(filename)
+     if filename.startswith(EXT_LIB_DIR):
+         return False
++    if std_path is None:
++        std_path = STD_LIB_DIRS
+     for path in std_path:
+         if filename.startswith(_abspath(path)):
+             return True
+@@ -457,7 +463,7 @@ def is_relative(modname, from_file):
+     if from_file in sys.path:
+         return False
+     try:
+-        find_module(modname.split('.')[0], [from_file])
++        imp.find_module(modname.split('.')[0], [from_file])
+         return True
+     except ImportError:
+         return False
+@@ -480,17 +486,18 @@ def _file_from_modpath(modpath, path=Non
+             mtype, mp_filename = _module_file(modpath, path)
+     else:
+         mtype, mp_filename = _module_file(modpath, path)
+-    if mtype == PY_COMPILED:
++    if mtype == imp.PY_COMPILED:
+         try:
+-            return get_source_file(mp_filename)
++            return get_source_file(mp_filename), imp.PY_SOURCE
+         except NoSourceFile:
+-            return mp_filename
+-    elif mtype == C_BUILTIN:
++            return mp_filename, imp.PY_COMPILED
++    elif mtype == imp.C_BUILTIN:
+         # integrated builtin module
+-        return None
+-    elif mtype == PKG_DIRECTORY:
++        return None, imp.C_BUILTIN
++    elif mtype == imp.PKG_DIRECTORY:
+         mp_filename = _has_init(mp_filename)
+-    return mp_filename
++        mtype = imp.PY_SOURCE
++    return mp_filename, mtype
+ 
+ def _search_zip(modpath, pic):
+     for filepath, importer in pic.items():
+@@ -499,7 +506,7 @@ def _search_zip(modpath, pic):
+                 if not importer.find_module(os.path.sep.join(modpath)):
+                     raise ImportError('No module named %s in %s/%s' % (
+                         '.'.join(modpath[1:]), filepath, modpath))
+-                return ZIPFILE, abspath(filepath) + os.path.sep + os.path.sep.join(modpath), filepath
++                return PY_ZIPMODULE, abspath(filepath) + os.path.sep + os.path.sep.join(modpath), filepath
+     raise ImportError('No module named %s' % '.'.join(modpath))
+ 
+ 
+@@ -570,7 +577,7 @@ def _module_file(modpath, path=None):
+         # >>> imp.find_module('posix')
+         # (None, None, ('', '', 6))
+         try:
+-            _, mp_filename, mp_desc = find_module(modname, path)
++            _, mp_filename, mp_desc = imp.find_module(modname, path)
+         except ImportError:
+             if checkeggs:
+                 return _search_zip(modpath, pic)[:2]
+@@ -593,7 +600,7 @@ def _module_file(modpath, path=None):
+         imported.append(modpath.pop(0))
+         mtype = mp_desc[2]
+         if modpath:
+-            if mtype != PKG_DIRECTORY:
++            if mtype != imp.PKG_DIRECTORY:
+                 raise ImportError('No module %s in %s' % ('.'.join(modpath),
+                                                           '.'.join(imported)))
+             # XXX guess if package is using pkgutil.extend_path by looking for
+--- a/test/unittest_manager.py
++++ b/test/unittest_manager.py
+@@ -127,7 +127,7 @@ class AstroidManagerTC(TestCase):
+         else:
+             unittest_file = unittest.__file__[:-1]
+         self.assertEqual(unittest_file,
+-                        self.manager.file_from_module_name('unittest', None))
++                        self.manager.file_from_module_name('unittest', None)[0])
+ 
+     def test_file_from_module_name_astro_building_exception(self):
+         """check if the method launch a exception with a wrong module name"""
+--- a/test/unittest_modutils.py
++++ b/test/unittest_modutils.py
+@@ -45,12 +45,12 @@ class ModuleFileTC(TestCase):
+ 
+     def test_find_zipped_module(self):
+         mtype, mfile = modutils._module_file([self.package], [path.join(DATADIR, 'MyPyPa-0.1.0-py2.5.zip')])
+-        self.assertEqual(mtype, modutils.ZIPFILE)
++        self.assertEqual(mtype, modutils.PY_ZIPMODULE)
+         self.assertEqual(mfile.split(sep)[-4:], ["test", "data", "MyPyPa-0.1.0-py2.5.zip", self.package])
+ 
+     def test_find_egg_module(self):
+         mtype, mfile = modutils._module_file([self.package], [path.join(DATADIR, 'MyPyPa-0.1.0-py2.5.egg')])
+-        self.assertEqual(mtype, modutils.ZIPFILE)
++        self.assertEqual(mtype, modutils.PY_ZIPMODULE)
+         self.assertEqual(mfile.split(sep)[-4:], ["test", "data", "MyPyPa-0.1.0-py2.5.egg", self.package])
+ 
+ 
+@@ -194,14 +194,10 @@ class is_standard_module_tc(TestCase):
+     def test_builtin(self):
+         self.assertEqual(modutils.is_standard_module('marshal'), True)
+ 
++    @unittest.skipIf(sys.version_info > (3, 0) and sys.platform.startswith("win"),
++                     "Python 3's imp module on Windows is broken since it returns "
++                     "the module path with wrong casing.")
+     def test_4(self):
+-        import astroid
+-        if sys.version_info > (3, 0):
+-            skip = sys.platform.startswith('win') or '.tox' in astroid.__file__
+-            if skip:
+-                self.skipTest('imp module has a broken behaviour in Python 3 on '
+-                              'Windows, returning the module path with different '
+-                              'case than it should be.')
+         self.assertEqual(modutils.is_standard_module('hashlib'), True)
+         self.assertEqual(modutils.is_standard_module('pickle'), True)
+         self.assertEqual(modutils.is_standard_module('email'), True)
+--- a/test/unittest_regrtest.py
++++ b/test/unittest_regrtest.py
+@@ -138,7 +138,7 @@ multiply(1, 2, 3)
+         callfunc = astroid.body[1].value.func
+         infered = callfunc.infered()
+         self.assertEqual(len(infered), 1)
+-        self.assertIsInstance(infered[0], Instance)
++        self.assertIs(infered[0], YES)
+ 
+     @require_version('3.0')
+     def test_nameconstant(self):
