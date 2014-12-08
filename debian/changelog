@@ -1,3 +1,11 @@
+astroid (1.2.1-3) unstable; urgency=medium
+
+  * debian/patches/afea46c0380956213976db2ce0f1e8f3cf6a0abc.patch
+    - enable fine-grained control over extensions loading; this fix is needed
+      after #591676 fix; Addresses: #772018
+
+ -- Sandro Tosi <morph@debian.org>  Mon, 08 Dec 2014 21:43:04 +0000
+
 astroid (1.2.1-2) unstable; urgency=medium
 
   * debian/patches/e24cacb15e2e152db155fdca9197a8d1bf9ce235.patch
