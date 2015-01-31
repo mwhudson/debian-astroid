@@ -3,7 +3,7 @@ Upstream-Name: astroid
 Source: http://www.astroid.org/
 
 Files: *
-Copyright: 2003-2014 Logilab <python-projects@lists.logilab.org>
+Copyright: 2003-2015 Logilab <python-projects@lists.logilab.org>
 License: LGPL-2.1+
  astroid is free software: you can redistribute it and/or modify it
  under the terms of the GNU Lesser General Public License as published by the
@@ -22,7 +22,7 @@ License: LGPL-2.1+
  License version 2.1 can be found in "/usr/share/common-licenses/LGPL-2.1".
 
 Files: debian/*
-Copyright: 2014 Sandro Tosi <morph@debian.org>
+Copyright: 2014-2015 Sandro Tosi <morph@debian.org>
 License: LGPL-2.1+
  astroid is free software: you can redistribute it and/or modify it
  under the terms of the GNU Lesser General Public License as published by the
