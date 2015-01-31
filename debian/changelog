@@ -4,8 +4,10 @@ astroid (1.3.4-1) UNRELEASED; urgency=medium
   * debian/copyright
     - extend upstream and packaging copyright years
     - update upstream email contact
+  * debian/control
+    - add six to dependencies
 
- -- Sandro Tosi <morph@debian.org>  Sat, 31 Jan 2015 00:04:11 +0000
+ -- Sandro Tosi <morph@debian.org>  Sat, 31 Jan 2015 00:07:40 +0000
 
 astroid (1.2.1-3) unstable; urgency=medium
 
