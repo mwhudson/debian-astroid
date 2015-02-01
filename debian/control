@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Sandro Tosi <morph@debian.org>
 Uploaders: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-Build-Depends: debhelper (>= 9.0.0), python, python3, dh-python
+Build-Depends: debhelper (>= 9.0.0), python, python3, dh-python, python-setuptools, python3-setuptools
 Standards-Version: 3.9.6
 Homepage: http://www.astroid.org/
 Vcs-Svn: svn://anonscm.debian.org/python-modules/packages/astroid/trunk/
@@ -11,7 +11,7 @@ Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/astroid/tr
 
 Package: python-astroid
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, python-logilab-common (>= 0.60.0)
+Depends: ${python:Depends}, ${misc:Depends}, python-logilab-common (>= 0.60.0), python-six
 Description: rebuild a new abstract syntax tree from Python's AST
  The aim of this module is to provide a common base representation of
  Python source code for projects such as pychecker, pyreverse,
@@ -39,7 +39,7 @@ Description: rebuild a new abstract syntax tree from Python's AST
 
 Package: python3-astroid
 Architecture: all
-Depends: ${python3:Depends}, ${misc:Depends}, python3-logilab-common (>= 0.60.0)
+Depends: ${python3:Depends}, ${misc:Depends}, python3-logilab-common (>= 0.60.0), python3-six
 Description: rebuild a new abstract syntax tree from Python's AST (Python3)
  The aim of this module is to provide a common base representation of
  Python source code for projects such as pychecker, pyreverse,

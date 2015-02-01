@@ -18,7 +18,7 @@ override_dh_install:
 			--root=$(CURDIR)/debian/$(PKG3)/ \
 			--install-layout=deb
 	# remove tests files
-	rm -rf debian/*/usr/lib/python*/*-packages/astroid/test
+	rm -rf debian/*/usr/lib/python*/*-packages/astroid/tests
 
 override_dh_installdocs:
 	dh_installdocs -i README
