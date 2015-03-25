@@ -1,5 +1,3 @@
-# Compulsory line, this is a version 3 file
 version=3
-
-opts="filenamemangle=s|.*/(.*)\#md5.*$|$1|" \
-https://pypi.python.org/simple/astroid/ .*/astroid-(.*)\.(?:zip|tgz|tbz2|txz|tar\.(?:gz|bz2|xz)).*
+opts=uversionmangle=s/(rc|a|b|c)/~$1/ \
+http://pypi.debian.net/astroid/astroid-(.+)\.(?:zip|tgz|tbz|txz|(?:tar\.(?:gz|bz2|xz)))

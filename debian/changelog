@@ -1,3 +1,10 @@
+astroid (1.3.4-2) UNRELEASED; urgency=medium
+
+  * debian/watch
+    - uses PyPI redirector
+
+ -- Sandro Tosi <morph@debian.org>  Wed, 25 Mar 2015 11:28:12 +0000
+
 astroid (1.3.4-1) experimental; urgency=medium
 
   * New upstream release
