@@ -22,7 +22,6 @@ import sys
 import unittest
 
 from astroid import builder, nodes, InferenceError, NotFoundError
-from astroid.nodes import Module
 from astroid.bases import YES, BUILTINS
 from astroid.manager import AstroidManager
 from astroid import test_utils
@@ -502,13 +501,14 @@ class BuilderTest(unittest.TestCase):
         self.assertIn('type', lclass.locals)
 
     def test_augassign_attr(self):
-        astroid = test_utils.build_module("""
+        test_utils.build_module("""
             class Counter:
                 v = 0
                 def inc(self):
                     self.v += 1
             """, __name__)
-        # Check self.v += 1 generate AugAssign(AssAttr(...)), not AugAssign(GetAttr(AssName...))
+        # TODO: Check self.v += 1 generate AugAssign(AssAttr(...)),
+        # not AugAssign(GetAttr(AssName...))
 
     def test_infered_dont_pollute(self):
         code = '''
@@ -517,7 +517,7 @@ class BuilderTest(unittest.TestCase):
             def func2(a={}):
                 a.custom_attr = 0
             '''
-        astroid = test_utils.build_module(code)
+        test_utils.build_module(code)
         nonetype = nodes.const_factory(None)
         self.assertNotIn('custom_attr', nonetype.locals)
         self.assertNotIn('custom_attr', nonetype.instance_attrs)

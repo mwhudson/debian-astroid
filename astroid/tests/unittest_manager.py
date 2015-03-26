@@ -29,6 +29,13 @@ class AstroidManagerTest(resources.SysPathSetup,
                          resources.AstroidCacheSetupMixin,
                          unittest.TestCase):
 
+    @property
+    def project(self):
+        return self.manager.project_from_files(
+            [resources.find('data')],
+            _silent_no_wrap, 'data',
+            black_list=['joined_strings.py'])
+
     def setUp(self):
         super(AstroidManagerTest, self).setUp()
         self.manager = AstroidManager()
@@ -177,12 +184,11 @@ class AstroidManagerTest(resources.SysPathSetup,
         self.assertRaises(AstroidBuildingException, self.manager.ast_from_class, None)
 
     def test_from_directory(self):
-        obj = self.manager.project_from_files([resources.find('data')], _silent_no_wrap, 'data')
-        self.assertEqual(obj.name, 'data')
-        self.assertEqual(obj.path, os.path.abspath(resources.find('data/__init__.py')))
+        self.assertEqual(self.project.name, 'data')
+        self.assertEqual(self.project.path,
+                         os.path.abspath(resources.find('data/__init__.py')))
 
     def test_project_node(self):
-        obj = self.manager.project_from_files([resources.find('data')], _silent_no_wrap, 'data')
         expected = [
             'data',
             'data.SSL1',
@@ -222,7 +228,7 @@ class AstroidManagerTest(resources.SysPathSetup,
             'data.suppliermodule_test',
             'data.unicode_package',
             'data.unicode_package.core']
-        self.assertListEqual(sorted(obj.keys()), expected)
+        self.assertListEqual(sorted(self.project.keys()), expected)
 
     def testFailedImportHooks(self):
         def hook(modname):
@@ -249,11 +255,9 @@ class BorgAstroidManagerTC(unittest.TestCase):
         built = first_manager.ast_from_module_name(BUILTINS)
 
         second_manager = AstroidManager()
-        second_built = first_manager.ast_from_module_name(BUILTINS)
+        second_built = second_manager.ast_from_module_name(BUILTINS)
         self.assertIs(built, second_built)
 
 
 if __name__ == '__main__':
     unittest.main()
-
-

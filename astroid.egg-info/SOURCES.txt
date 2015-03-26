@@ -9,6 +9,7 @@ tox.ini
 astroid/__init__.py
 astroid/__pkginfo__.py
 astroid/as_string.py
+astroid/astpeephole.py
 astroid/bases.py
 astroid/builder.py
 astroid/exceptions.py
@@ -48,6 +49,8 @@ astroid/tests/unittest_lookup.py
 astroid/tests/unittest_manager.py
 astroid/tests/unittest_modutils.py
 astroid/tests/unittest_nodes.py
+astroid/tests/unittest_peephole.py
+astroid/tests/unittest_protocols.py
 astroid/tests/unittest_python3.py
 astroid/tests/unittest_raw_building.py
 astroid/tests/unittest_regrtest.py
@@ -62,6 +65,7 @@ astroid/tests/testdata/python2/data/clientmodule_test.py
 astroid/tests/testdata/python2/data/descriptor_crash.py
 astroid/tests/testdata/python2/data/email.py
 astroid/tests/testdata/python2/data/format.py
+astroid/tests/testdata/python2/data/joined_strings.py
 astroid/tests/testdata/python2/data/module.py
 astroid/tests/testdata/python2/data/module2.py
 astroid/tests/testdata/python2/data/noendingnewline.py
@@ -102,6 +106,7 @@ astroid/tests/testdata/python3/data/clientmodule_test.py
 astroid/tests/testdata/python3/data/descriptor_crash.py
 astroid/tests/testdata/python3/data/email.py
 astroid/tests/testdata/python3/data/format.py
+astroid/tests/testdata/python3/data/joined_strings.py
 astroid/tests/testdata/python3/data/module.py
 astroid/tests/testdata/python3/data/module2.py
 astroid/tests/testdata/python3/data/noendingnewline.py
