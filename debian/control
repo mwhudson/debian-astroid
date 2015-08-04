@@ -11,7 +11,7 @@ Vcs-Browser: http://anonscm.debian.org/viewvc/python-modules/packages/astroid/tr
 
 Package: python-astroid
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, python-logilab-common (>= 0.60.0), python-six
+Depends: ${python:Depends}, ${misc:Depends}, python-logilab-common (>= 0.63.0), python-six
 Description: rebuild a new abstract syntax tree from Python's AST
  The aim of this module is to provide a common base representation of
  Python source code for projects such as pychecker, pyreverse,
@@ -39,7 +39,7 @@ Description: rebuild a new abstract syntax tree from Python's AST
 
 Package: python3-astroid
 Architecture: all
-Depends: ${python3:Depends}, ${misc:Depends}, python3-logilab-common (>= 0.60.0), python3-six
+Depends: ${python3:Depends}, ${misc:Depends}, python3-logilab-common (>= 0.63.0), python3-six
 Description: rebuild a new abstract syntax tree from Python's AST (Python3)
  The aim of this module is to provide a common base representation of
  Python source code for projects such as pychecker, pyreverse,

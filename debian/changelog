@@ -1,3 +1,11 @@
+astroid (1.3.8-1) unstable; urgency=medium
+
+  * New upstream release
+  * debian/control
+    - tighen logilab-common deps to >= 0.63.0
+
+ -- Sandro Tosi <morph@debian.org>  Tue, 04 Aug 2015 07:57:06 +0100
+
 astroid (1.3.6-2) unstable; urgency=medium
 
   * upload to unstable
