@@ -6,3 +6,6 @@
 astroid_1.3.8.orig.tar.gz
 cf033ba001744da7ee273093089e470dd2fc6fee
 155302
+debianTag="debian/%e%v"
+patchedTag="patched/%e%v"
+upstreamTag="upstream/%e%u"
