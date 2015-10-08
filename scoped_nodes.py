@@ -499,7 +499,7 @@ def _infer_decorator_callchain(node):
                 #       because there's no flow to reason when the return
                 #       is what we are looking for, a static or a class method.
                 result = current.infer_call_result(current.parent).next()
-            except InferenceError:
+            except (StopIteration, InferenceError):
                 return
             if isinstance(result, (Function, CallFunc)):
                 current = result
@@ -756,15 +756,21 @@ def _rec_get_names(args, names=None):
 # Class ######################################################################
 
 
-def _is_metaclass(klass):
+def _is_metaclass(klass, seen=None):
     """ Return if the given class can be
     used as a metaclass.
     """
     if klass.name == 'type':
         return True
+    if seen is None:
+        seen = set()
     for base in klass.bases:
         try:
             for baseobj in base.infer():
+                if baseobj in seen:
+                    continue
+                else:
+                    seen.add(baseobj)
                 if isinstance(baseobj, Instance):
                     # not abstract
                     return False
@@ -776,7 +782,7 @@ def _is_metaclass(klass):
                     continue
                 if baseobj._type == 'metaclass':
                     return True
-                if _is_metaclass(baseobj):
+                if _is_metaclass(baseobj, seen):
                     return True
         except InferenceError:
             continue
@@ -1028,7 +1034,9 @@ class Class(Statement, LocalsDictNodeNG, FilterStmtsMixin):
           if no attribute with this name has been find in this class or
           its parent classes
         """
-        values = self.instance_attrs.get(name, [])
+        # Return a copy, so we don't modify self.instance_attrs,
+        # which could lead to infinite loop.
+        values = list(self.instance_attrs.get(name, []))
         # get all values from parents
         for class_node in self.instance_attr_ancestors(name, context):
             values += class_node.instance_attrs[name]

@@ -20,6 +20,7 @@
 from os.path import join, dirname, abspath
 import sys
 from StringIO import StringIO
+from textwrap import dedent
 
 from logilab.common.testlib import TestCase, unittest_main, require_version
 
@@ -929,6 +930,35 @@ def f(x):
         self.assertEqual(len(infered), 1)
         self.assertEqual(infered[0], YES)
 
+    def test_nonregr_instance_attrs(self):
+        """non regression for instance_attrs infinite loop : pylint / #4"""
+
+        code = """
+class Foo(object):
+
+    def set_42(self):
+        self.attr = 42
+
+class Bar(Foo):
+
+    def __init__(self):
+        self.attr = 41
+        """
+        astroid = builder.string_build(code, __name__, __file__)
+        foo_class = astroid['Foo']
+        bar_class = astroid['Bar']
+        bar_self = astroid['Bar']['__init__']['self']
+        assattr = bar_class.instance_attrs['attr'][0]
+        self.assertEqual(len(foo_class.instance_attrs['attr']), 1)
+        self.assertEqual(len(bar_class.instance_attrs['attr']), 1)
+        self.assertEqual(bar_class.instance_attrs, {'attr': [assattr]})
+        # call 'instance_attr' via 'Instance.getattr' to trigger the bug:
+        instance = bar_self.infered()[0]
+        _attr = instance.getattr('attr')
+        self.assertEqual(len(bar_class.instance_attrs['attr']), 1)
+        self.assertEqual(len(foo_class.instance_attrs['attr']), 1)
+        self.assertEqual(bar_class.instance_attrs, {'attr': [assattr]})
+
     def test_python25_generator_exit(self):
         sys.stderr = StringIO()
         data = "b = {}[str(0)+''].a"
@@ -1219,6 +1249,115 @@ empty_list = A().empty_method()
         self.assertEqual(empty.value, 2)
         empty_list = astroid['empty_list'].infered()[0]
         self.assertIsInstance(empty_list, nodes.List)
+
+    def test_infer_variable_arguments(self):
+        code = '''
+def test(*args, **kwargs):
+    vararg = args
+    kwarg = kwargs
+        '''
+        astroid = builder.string_build(code, __name__, __file__)
+        func = astroid['test']
+        vararg = func.body[0].value
+        kwarg = func.body[1].value
+
+        kwarg_infered = kwarg.infered()[0]
+        self.assertIsInstance(kwarg_infered, nodes.Dict)
+        self.assertIs(kwarg_infered.parent, func.args)
+
+        vararg_infered = vararg.infered()[0]
+        self.assertIsInstance(vararg_infered, nodes.Tuple)
+        self.assertIs(vararg_infered.parent, func.args)
+
+    def test_infer_nested(self):
+        code = dedent("""
+        def nested():
+            from threading import Thread
+    
+            class NestedThread(Thread):
+                def __init__(self):
+                    Thread.__init__(self)
+        """)
+        # Test that inferring Thread.__init__ looks up in
+        # the nested scope.
+        astroid = builder.string_build(code, __name__, __file__)
+        callfunc = next(astroid.nodes_of_class(nodes.CallFunc))
+        func = callfunc.func
+        infered = func.infered()[0]
+        self.assertIsInstance(infered, UnboundMethod)
+
+    def test_instance_binary_operations(self):
+        code = dedent("""
+        class A(object):
+            def __mul__(self, other):
+                return 42
+        a = A()
+        b = A()
+        sub = a - b
+        mul = a * b
+        """)
+        astroid = builder.string_build(code, __name__, __file__)
+        sub = astroid['sub'].infered()[0]
+        mul = astroid['mul'].infered()[0]
+        self.assertIs(sub, YES)
+        self.assertIsInstance(mul, nodes.Const)
+        self.assertEqual(mul.value, 42)
+
+    def test_instance_binary_operations_parent(self):
+        code = dedent("""
+        class A(object):
+            def __mul__(self, other):
+                return 42
+        class B(A):
+            pass
+        a = B()
+        b = B()
+        sub = a - b
+        mul = a * b
+        """)
+        astroid = builder.string_build(code, __name__, __file__)
+        sub = astroid['sub'].infered()[0]
+        mul = astroid['mul'].infered()[0]
+        self.assertIs(sub, YES)
+        self.assertIsInstance(mul, nodes.Const)
+        self.assertEqual(mul.value, 42)
+
+    def test_instance_binary_operations_multiple_methods(self):
+        code = dedent("""
+        class A(object):
+            def __mul__(self, other):
+                return 42
+        class B(A):
+            def __mul__(self, other):
+                return [42]
+        a = B()
+        b = B()
+        sub = a - b
+        mul = a * b
+        """)
+        astroid = builder.string_build(code, __name__, __file__)
+        sub = astroid['sub'].infered()[0]
+        mul = astroid['mul'].infered()[0]
+        self.assertIs(sub, YES)
+        self.assertIsInstance(mul, nodes.List)
+        self.assertIsInstance(mul.elts[0], nodes.Const)
+        self.assertEqual(mul.elts[0].value, 42)
+
+    def test_infer_call_result_crash(self):
+        # Test for issue 11.
+        code = dedent("""
+        class A(object):
+            def __mul__(self, other):
+                return type.__new__()
+
+        a = A()
+        b = A()
+        c = a * b
+        """)
+        astroid = builder.string_build(code, __name__, __file__)
+        node = astroid['c']
+        self.assertEqual(node.infered(), [YES])
+
 
 if __name__ == '__main__':
     unittest_main()

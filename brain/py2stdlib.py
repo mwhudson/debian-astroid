@@ -8,7 +8,10 @@ Currently help understanding of :
 import sys
 from textwrap import dedent
 
-from astroid import MANAGER, AsStringRegexpPredicate, UseInferenceDefault, inference_tip, YES
+from astroid import (
+    MANAGER, AsStringRegexpPredicate,
+    UseInferenceDefault, inference_tip,
+    YES, InferenceError)
 from astroid import exceptions
 from astroid import nodes
 from astroid.builder import AstroidBuilder
@@ -19,7 +22,7 @@ PY33 = sys.version_info >= (3, 3)
 
 # general function
 
-def infer_func_form(node, base_type, context=None):
+def infer_func_form(node, base_type, context=None, enum=False):
     """Specific inference function for namedtuple or Python 3 enum. """
     def infer_first(node):
         try:
@@ -44,8 +47,33 @@ def infer_func_form(node, base_type, context=None):
         try:
             attributes = names.value.replace(',', ' ').split()
         except AttributeError:
-            attributes = [infer_first(const).value for const in names.elts]
-    except (AttributeError, exceptions.InferenceError):
+            if not enum:
+                attributes = [infer_first(const).value for const in names.elts]
+            else:
+                # Enums supports either iterator of (name, value) pairs
+                # or mappings.
+                # TODO: support only list, tuples and mappings.
+                if hasattr(names, 'items') and isinstance(names.items, list):
+                    attributes = [infer_first(const[0]).value
+                                  for const in names.items
+                                  if isinstance(const[0], nodes.Const)]
+                elif hasattr(names, 'elts'):
+                    # Enums can support either ["a", "b", "c"]
+                    # or [("a", 1), ("b", 2), ...], but they can't
+                    # be mixed.
+                    if all(isinstance(const, nodes.Tuple)
+                           for const in names.elts):
+                        attributes = [infer_first(const.elts[0]).value
+                                      for const in names.elts
+                                      if isinstance(const, nodes.Tuple)]
+                    else:
+                        attributes = [infer_first(const).value
+                                      for const in names.elts]
+                else:
+                    raise AttributeError
+                if not attributes:
+                    raise AttributeError
+    except (AttributeError, exceptions.InferenceError) as exc:
         raise UseInferenceDefault()
     # we want to return a Class node instance with proper attributes set
     class_node = nodes.Class(name, 'docstring')
@@ -163,32 +191,6 @@ def cleanup_resources(force=False):
         module.locals[func_name] = func
 
 
-def urlparse_transform(module):
-    fake = AstroidBuilder(MANAGER).string_build('''
-
-def urlparse(url, scheme='', allow_fragments=True):
-    return ParseResult()
-
-class ParseResult(object):
-    def __init__(self):
-        self.scheme = ''
-        self.netloc = ''
-        self.path = ''
-        self.params = ''
-        self.query = ''
-        self.fragment = ''
-        self.username = None
-        self.password = None
-        self.hostname = None
-        self.port = None
-
-    def geturl(self):
-        return ''
-''')
-
-    for func_name, func in fake.locals.items():
-        module.locals[func_name] = func
-
 def subprocess_transform(module):
     if PY3K:
         communicate = (bytes('string', 'ascii'), bytes('string', 'ascii'))
@@ -247,7 +249,6 @@ class Popen(object):
 MODULE_TRANSFORMS['hashlib'] = hashlib_transform
 MODULE_TRANSFORMS['collections'] = collections_transform
 MODULE_TRANSFORMS['pkg_resources'] = pkg_resources_transform
-MODULE_TRANSFORMS['urlparse'] = urlparse_transform
 MODULE_TRANSFORMS['subprocess'] = subprocess_transform
 
 # namedtuple support ###########################################################
@@ -258,6 +259,7 @@ def infer_named_tuple(node, context=None):
                                                    context=context)
     fake = AstroidBuilder(MANAGER).string_build('''
 class %(name)s(tuple):
+    _fields = %(fields)r
     def _asdict(self):
         return self.__dict__
     @classmethod
@@ -272,13 +274,15 @@ class %(name)s(tuple):
     class_node.locals['_asdict'] = fake.body[0].locals['_asdict']
     class_node.locals['_make'] = fake.body[0].locals['_make']
     class_node.locals['_replace'] = fake.body[0].locals['_replace']
+    class_node.locals['_fields'] = fake.body[0].locals['_fields']
     # we use UseInferenceDefault, we can't be a generator so return an iterator
     return iter([class_node])
 
 def infer_enum(node, context=None):
     """ Specific inference function for enum CallFunc node. """
     enum_meta = nodes.Class("EnumMeta", 'docstring')
-    class_node = infer_func_form(node, enum_meta, context=context)[0]
+    class_node = infer_func_form(node, enum_meta,
+                                 context=context, enum=True)[0]
     return iter([class_node.instanciate_class()])
 
 def infer_enum_class(node, context=None):
@@ -313,6 +317,8 @@ def infer_enum_class(node, context=None):
                        'value': real_value.as_string()})
                 fake = AstroidBuilder(MANAGER).string_build(classdef)[target.name]
                 fake.parent = target.parent
+                for method in node.mymethods():
+                    fake.locals[method.name] = [method]
                 new_targets.append(fake.instanciate_class())
             node.locals[local] = new_targets
         break
