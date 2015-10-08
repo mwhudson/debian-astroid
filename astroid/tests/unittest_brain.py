@@ -26,6 +26,13 @@ from astroid import test_utils
 import astroid
 
 
+try:
+    import nose # pylint: disable=unused-import
+    HAS_NOSE = True
+except ImportError:
+    HAS_NOSE = False
+
+
 class HashlibTest(unittest.TestCase):
     def test_hashlib(self):
         """Tests that brain extensions for hashlib work."""
@@ -105,6 +112,27 @@ class ModuleExtenderTest(unittest.TestCase):
             n = nodes.Module('__main__', None)
             extender(n)
 
+
+@unittest.skipUnless(HAS_NOSE, "This test requires nose library.")
+class NoseBrainTest(unittest.TestCase):
+
+    def test_nose_tools(self):
+        methods = test_utils.extract_node("""
+        from nose.tools import assert_equal
+        from nose.tools import assert_true
+        assert_equal = assert_equal #@
+        assert_true = assert_true #@
+        """)
+
+        assert_equal = next(methods[0].value.infer())
+        assert_true = next(methods[1].value.infer())
+
+        self.assertIsInstance(assert_equal, astroid.BoundMethod)
+        self.assertIsInstance(assert_true, astroid.BoundMethod)
+        self.assertEqual(assert_equal.qname(),
+                         'unittest.case.TestCase.assertEqual')
+        self.assertEqual(assert_true.qname(),
+                         'unittest.case.TestCase.assertTrue')
 
 
 if __name__ == '__main__':

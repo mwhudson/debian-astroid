@@ -966,7 +966,7 @@ class InferenceTest(resources.SysPathSetup, unittest.TestCase):
         self.assertEqual(bar_class.instance_attrs, {'attr': [assattr]})
         # call 'instance_attr' via 'Instance.getattr' to trigger the bug:
         instance = bar_self.infered()[0]
-        _attr = instance.getattr('attr')
+        instance.getattr('attr')
         self.assertEqual(len(bar_class.instance_attrs['attr']), 1)
         self.assertEqual(len(foo_class.instance_attrs['attr']), 1)
         self.assertEqual(bar_class.instance_attrs, {'attr': [assattr]})
@@ -1007,7 +1007,7 @@ class InferenceTest(resources.SysPathSetup, unittest.TestCase):
 
     def test_mechanize_open(self):
         try:
-            import mechanize
+            import mechanize  # pylint: disable=unused-variable
         except ImportError:
             self.skipTest('require mechanize installed')
         data = '''
@@ -1412,7 +1412,7 @@ class InferenceTest(resources.SysPathSetup, unittest.TestCase):
          """
          ast = test_utils.extract_node(code, __name__)
          expr = ast.func.expr
-         self.assertIs(next(expr.infer()), YES)
+         self.assertRaises(InferenceError, next, expr.infer())
 
     def test_tuple_builtin_inference(self):
          code = """
@@ -1623,6 +1623,22 @@ class InferenceTest(resources.SysPathSetup, unittest.TestCase):
              self.assertInferConst(ast[i], u'')
          for i in range(16, 19):
              self.assertInferConst(ast[i], 0)
+
+    def test_scope_lookup_same_attributes(self):
+        code = '''
+        import collections
+        class Second(collections.Counter):
+            def collections(self):
+                return "second"
+
+        '''
+        ast = test_utils.build_module(code, __name__)
+        bases = ast['Second'].bases[0]
+        inferred = next(bases.infer())
+        self.assertTrue(inferred)
+        self.assertIsInstance(inferred, nodes.Class)
+        self.assertEqual(inferred.qname(), 'collections.Counter')
+
 
 if __name__ == '__main__':
     unittest.main()

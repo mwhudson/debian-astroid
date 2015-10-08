@@ -15,12 +15,11 @@
 #
 # You should have received a copy of the GNU Lesser General Public License along
 # with astroid. If not, see <http://www.gnu.org/licenses/>.
-from os.path import join, abspath, dirname
 import sys
 import unittest
+import textwrap
 
-from astroid import ResolveError, MANAGER, Instance, nodes, YES, InferenceError
-from astroid.bases import BUILTINS
+from astroid import MANAGER, Instance, nodes
 from astroid.builder import AstroidBuilder
 from astroid.raw_building import build_module
 from astroid.manager import AstroidManager
@@ -88,7 +87,7 @@ class NonRegressionTests(resources.AstroidCacheSetupMixin,
 
     def test_new_style_class_detection(self):
         try:
-            import pygtk
+            import pygtk # pylint: disable=unused-variable
         except ImportError:
             self.skipTest('test skipped: pygtk is not available')
         # XXX may fail on some pygtk version, because objects in
@@ -109,7 +108,7 @@ class A(gobject.GObject):
 
     def test_pylint_config_attr(self):
         try:
-            from pylint import lint
+            from pylint import lint # pylint: disable=unused-variable
         except ImportError:
             self.skipTest('pylint not available')
         mod = MANAGER.ast_from_module_name('pylint.lint')
@@ -130,7 +129,7 @@ class A(gobject.GObject):
         #a crash occured somewhere in the past, and an
         # InferenceError instead of a crash was better, but now we even infer!
         try:
-            import numpy
+            import numpy # pylint: disable=unused-variable
         except ImportError:
             self.skipTest('test skipped: numpy is not available')
         builder = AstroidBuilder()
@@ -220,6 +219,28 @@ def test():
         self.assertIsInstance(result, Instance)
         base = next(result._proxied.bases[0].infer())
         self.assertEqual(base.name, 'int')
+
+    def test_ancestors_patching_class_recursion(self):
+        node = AstroidBuilder().string_build(textwrap.dedent("""
+        import string
+        Template = string.Template
+
+        class A(Template):
+            pass
+
+        class B(A):
+            pass
+
+        def test(x=False):
+            if x:
+                string.Template = A
+            else:
+                string.Template = B
+        """))
+        klass = node['A']
+        ancestors = list(klass.ancestors())
+        self.assertEqual(ancestors[0].qname(), 'string.Template')
+
 
 class Whatever(object):
     a = property(lambda x: x, lambda x: x)

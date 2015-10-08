@@ -20,11 +20,14 @@
 import os
 import sys
 import unittest
+import textwrap
 
 from astroid.node_classes import unpack_infer
-from astroid.bases import BUILTINS, YES, InferenceContext
-from astroid.exceptions import AstroidBuildingException, NotFoundError
-from astroid import builder, nodes
+from astroid.bases import BUILTINS, InferenceContext
+from astroid.exceptions import NotFoundError
+from astroid import bases
+from astroid import builder
+from astroid import nodes
 from astroid import test_utils
 from astroid.tests import resources
 
@@ -81,16 +84,22 @@ def function(var):
         (*hell, o) = b'hello'
         raise AttributeError from nexc
 \n'''
-        # TODO : annotations and keywords for class definition are not yet implemented
-        _todo = '''
-def function(var:int):
-    nonlocal counter
-
-class Language(metaclass=Natural):
-    """natural language"""
-        '''
         ast = abuilder.string_build(code)
         self.assertEqual(ast.as_string(), code)
+
+    @test_utils.require_version('3.0')
+    @unittest.expectedFailure
+    def test_3k_annotations_and_metaclass(self):
+        code_annotations = textwrap.dedent('''
+        def function(var:int):
+            nonlocal counter
+
+        class Language(metaclass=Natural):
+            """natural language"""
+        ''')
+
+        ast = abuilder.string_build(code_annotations)
+        self.assertEqual(ast.as_string(), code_annotations)
 
     def test_ellipsis(self):
         ast = abuilder.string_build('a[...]').body[0]
@@ -335,13 +344,22 @@ from ..cave import wine\n\n"""
         handler_type = astroid.body[1].handlers[0].type
 
         excs = list(unpack_infer(handler_type))
+        # The number of returned object can differ on Python 2
+        # and Python 3. In one version, an additional item will
+        # be returned, from the _pickle module, which is not
+        # present in the other version.
+        self.assertIsInstance(excs[0], nodes.Class)
+        self.assertEqual(excs[0].name, 'PickleError')
+        self.assertIs(excs[-1], bases.YES)
 
     def test_absolute_import(self):
         astroid = resources.build_file('data/absimport.py')
         ctx = InferenceContext()
         # will fail if absolute import failed
-        next(astroid['message'].infer(ctx, lookupname='message'))
-        m = next(astroid['email'].infer(ctx, lookupname='email'))
+        ctx.lookupname = 'message'
+        next(astroid['message'].infer(ctx))
+        ctx.lookupname = 'email'
+        m = next(astroid['email'].infer(ctx))
         self.assertFalse(m.file.startswith(os.path.join('data', 'email.py')))
 
     def test_more_absolute_import(self):
@@ -427,6 +445,14 @@ class ArgumentsNodeTC(unittest.TestCase):
         else:
             self.skipTest('FIXME  http://bugs.python.org/issue10445 '
                           '(no line number on function args)')
+
+    def test_builtin_fromlineno_missing(self):
+        cls = test_utils.extract_node('''
+        class Foo(Exception): #@
+            pass
+        ''')
+        new = cls.getattr('__new__')[-1]
+        self.assertEqual(new.args.fromlineno, 0)
 
 
 if __name__ == '__main__':
