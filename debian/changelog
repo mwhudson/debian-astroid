@@ -1,4 +1,4 @@
-astroid (1.4.1-1) UNRELEASED; urgency=medium
+astroid (1.4.1-1) unstable; urgency=medium
 
   * New upstream release
     - add support for Python 3.5; Closes: #800788
@@ -9,7 +9,7 @@ astroid (1.4.1-1) UNRELEASED; urgency=medium
     - add wrapt and lazy_object_proxy to b-d, needed to trigger the packages
       dependencies detection
 
- -- Sandro Tosi <morph@debian.org>  Sat, 02 Jan 2016 16:29:23 +0000
+ -- Sandro Tosi <morph@debian.org>  Sat, 02 Jan 2016 16:36:00 +0000
 
 astroid (1.3.8-1) unstable; urgency=medium
 
