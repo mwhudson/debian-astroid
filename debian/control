@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Sandro Tosi <morph@debian.org>
 Uploaders: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-Build-Depends: debhelper (>= 9.0.0), python, python3, dh-python, python-setuptools, python3-setuptools, python-nose, python3-nose
+Build-Depends: debhelper (>= 9.0.0), python, python3, dh-python, python-setuptools, python3-setuptools, python-nose, python3-nose, python-wrapt, python3-wrapt, python-lazy-object-proxy, python3-lazy-object-proxy
 Standards-Version: 3.9.6
 Homepage: http://www.astroid.org/
 Vcs-Git: git://anonscm.debian.org/python-modules/packages/astroid.git
