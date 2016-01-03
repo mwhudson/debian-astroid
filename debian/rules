@@ -21,4 +21,4 @@ override_dh_install:
 	rm -rf debian/*/usr/lib/python*/*-packages/astroid/tests
 
 override_dh_installdocs:
-	dh_installdocs -i README
+	dh_installdocs -i README.rst
