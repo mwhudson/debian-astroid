@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: astroid
-Version: 1.4.1
+Version: 1.4.3
 Summary: A abstract syntax tree for Python with inference support.
 Home-page: http://bitbucket.org/logilab/astroid
 Author: Logilab
