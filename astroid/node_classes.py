@@ -35,6 +35,7 @@ from astroid import util
 BUILTINS = six.moves.builtins.__name__
 
 
+@bases.raise_if_nothing_inferred
 def unpack_infer(stmt, context=None):
     """recursively generate nodes inferred by the given statement.
     If the inferred value is a list or a tuple, recurse on the elements
@@ -196,8 +197,7 @@ class LookupMixIn(object):
 
             if self.statement() is myframe and myframe.parent:
                 myframe = myframe.parent.frame()
-        if not myframe is frame or self is frame:
-            return stmts
+
         mystmt = self.statement()
         # line filtering if we are in the same frame
         #
@@ -217,9 +217,8 @@ class LookupMixIn(object):
             if mylineno > 0 and stmt.fromlineno > mylineno:
                 break
             assert hasattr(node, 'assign_type'), (node, node.scope(),
-                                                  node.scope()._locals)
+                                                  node.scope().locals)
             assign_type = node.assign_type()
-
             if node.has_base(self):
                 break
 
