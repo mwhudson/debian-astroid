@@ -2,11 +2,13 @@ astroid (1.4.5-1) UNRELEASED; urgency=medium
 
   [ Sandro Tosi ]
   * New upstream release
+  * debian/control
+    - bump Standards-Version to 3.9.8 (no changes needed)
 
   [ Ondřej Nový ]
   * Fixed VCS URL (https)
 
- -- Sandro Tosi <morph@debian.org>  Sat, 23 Apr 2016 01:13:53 +0100
+ -- Sandro Tosi <morph@debian.org>  Sat, 23 Apr 2016 01:15:24 +0100
 
 astroid (1.4.4-1) unstable; urgency=medium
 
