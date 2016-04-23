@@ -149,7 +149,7 @@ multiply(1, 2, 3)
         astroid = builder.string_build(data, __name__, __file__)
         callfunc = astroid.body[1].value.func
         inferred = callfunc.inferred()
-        self.assertEqual(len(inferred), 1)
+        self.assertEqual(len(inferred), 2)
 
     @require_version('3.0')
     def test_nameconstant(self):
@@ -298,6 +298,35 @@ def test():
         ''' % u"\u2019")
 
         next(node.value.infer()).as_string()
+
+    def test_binop_generates_nodes_with_parents(self):
+        node = extract_node('''
+        def no_op(*args):
+            pass
+        def foo(*args):
+            def inner(*more_args):
+                args + more_args #@
+            return inner
+        ''')
+        inferred = next(node.infer())
+        self.assertIsInstance(inferred, nodes.Tuple)
+        self.assertIsNotNone(inferred.parent)
+        self.assertIsInstance(inferred.parent, nodes.BinOp)
+
+    def test_decorator_names_inference_error_leaking(self):
+        node = extract_node('''
+        class Parent(object):
+            @property
+            def foo(self):
+                pass
+
+        class Child(Parent):
+            @Parent.foo.getter
+            def foo(self): #@
+                return super(Child, self).foo + ['oink']
+        ''')
+        inferred = next(node.infer())
+        self.assertEqual(inferred.decoratornames(), set())
 
 
 class Whatever(object):
