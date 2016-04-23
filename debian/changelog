@@ -1,8 +1,12 @@
-astroid (1.4.4-2) UNRELEASED; urgency=medium
+astroid (1.4.5-1) UNRELEASED; urgency=medium
 
+  [ Sandro Tosi ]
+  * New upstream release
+
+  [ Ondřej Nový ]
   * Fixed VCS URL (https)
 
- -- Ondřej Nový <novy@ondrej.org>  Tue, 29 Mar 2016 21:20:53 +0200
+ -- Sandro Tosi <morph@debian.org>  Sat, 23 Apr 2016 01:13:53 +0100
 
 astroid (1.4.4-1) unstable; urgency=medium
 
