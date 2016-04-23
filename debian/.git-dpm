@@ -1,11 +1,11 @@
 # see git-dpm(1) from git-dpm package
-a06d33a8cf30f751f2ccac8e7bf36a9f3c734a32
-a06d33a8cf30f751f2ccac8e7bf36a9f3c734a32
-a06d33a8cf30f751f2ccac8e7bf36a9f3c734a32
-a06d33a8cf30f751f2ccac8e7bf36a9f3c734a32
-astroid_1.4.4.orig.tar.gz
-605227603fc9d3e7b342de0005c7e82726b184a3
-181733
+b022987c7b522ff79f3b73511cf7293619b1df9b
+b022987c7b522ff79f3b73511cf7293619b1df9b
+b022987c7b522ff79f3b73511cf7293619b1df9b
+b022987c7b522ff79f3b73511cf7293619b1df9b
+astroid_1.4.5.orig.tar.gz
+2ec96d60a5b40a656fdcbab77f58ba453f0cb03e
+182251
 debianTag="debian/%e%v"
 patchedTag="patched/%e%v"
 upstreamTag="upstream/%e%u"
