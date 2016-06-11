@@ -17,6 +17,7 @@ from astroid import exceptions
 from astroid import nodes
 from astroid.builder import AstroidBuilder
 from astroid import util
+from astroid import test_utils
 
 PY3K = sys.version_info > (3, 0)
 PY33 = sys.version_info >= (3, 3)
@@ -79,6 +80,10 @@ def infer_func_form(node, base_type, context=None, enum=False):
                     raise AttributeError
     except (AttributeError, exceptions.InferenceError):
         raise UseInferenceDefault()
+
+    # If we can't iner the name of the class, don't crash, up to this point
+    # we know it is a namedtuple anyway.
+    name = name or 'Uninferable'
     # we want to return a Class node instance with proper attributes set
     class_node = nodes.ClassDef(name, 'docstring')
     class_node.parent = node.parent
@@ -311,10 +316,18 @@ class %(name)s(tuple):
 
 def infer_enum(node, context=None):
     """ Specific inference function for enum Call node. """
-    enum_meta = nodes.ClassDef("EnumMeta", 'docstring')
+    enum_meta = test_utils.extract_node('''
+    class EnumMeta(object):
+        'docstring'
+        def __call__(self, node):
+            class EnumAttribute(object):
+                name = ''
+                value = 0
+            return EnumAttribute()
+    ''')
     class_node = infer_func_form(node, enum_meta,
                                  context=context, enum=True)[0]
-    return iter([class_node])
+    return iter([class_node.instantiate_class()])
 
 
 def infer_enum_class(node):

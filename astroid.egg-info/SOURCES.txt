@@ -44,6 +44,7 @@ astroid/brain/brain_numpy.py
 astroid/brain/brain_pytest.py
 astroid/brain/brain_qt.py
 astroid/brain/brain_six.py
+astroid/brain/brain_ssl.py
 astroid/brain/brain_stdlib.py
 astroid/tests/__init__.py
 astroid/tests/resources.py
