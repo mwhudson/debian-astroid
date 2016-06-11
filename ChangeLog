@@ -1,6 +1,14 @@
 Change log for the astroid package (used to be astng)
 =====================================================
 
+2016-06-06 -- 1.4.6
+
+    * Fix a crash which occurred when the class of a namedtuple could not be inferred.
+
+    * Functional form of enums support accessing values through __call__.
+
+    * Brain tips for the ssl library.
+
 2016-03-21 -- 1.4.5
 
     * decoratornames() does not leak InferenceError anymore.
