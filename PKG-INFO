@@ -1,10 +1,10 @@
 Metadata-Version: 1.1
 Name: astroid
-Version: 1.4.6
+Version: 1.4.7
 Summary: A abstract syntax tree for Python with inference support.
-Home-page: http://bitbucket.org/logilab/astroid
-Author: Logilab
-Author-email: pylint-dev@lists.logilab.org
+Home-page: https://github.com/PyCQA/astroid
+Author: Python Code Quality Authority
+Author-email: code-quality@python.org
 License: LGPL
 Description: .. image:: https://drone.io/bitbucket.org/logilab/astroid/status.png
             :alt: drone.io Build Status
