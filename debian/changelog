@@ -1,10 +1,10 @@
-astroid (1.4.7-1) UNRELEASED; urgency=medium
+astroid (1.4.7-1) unstable; urgency=medium
 
   * New upstream release
   * debian/control
     - drop logilab-common from deps; Closes: #831505
 
- -- Sandro Tosi <morph@debian.org>  Mon, 18 Jul 2016 19:24:55 +0100
+ -- Sandro Tosi <morph@debian.org>  Mon, 18 Jul 2016 19:26:03 +0100
 
 astroid (1.4.6-1) unstable; urgency=medium
 
