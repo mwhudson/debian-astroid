@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: astroid
-Version: 1.4.8
+Version: 1.4.9
 Summary: A abstract syntax tree for Python with inference support.
 Home-page: https://github.com/PyCQA/astroid
 Author: Python Code Quality Authority
