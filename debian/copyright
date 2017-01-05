@@ -7,7 +7,7 @@ Copyright: 2003-2015 Logilab <pylint-dev@lists.logilab.org>
 License: LGPL-2.1+
 
 Files: debian/*
-Copyright: 2014-2016 Sandro Tosi <morph@debian.org>
+Copyright: 2014-2017 Sandro Tosi <morph@debian.org>
 License: LGPL-2.1+
 
 Files: astroid/tests/unittest_brain.py
