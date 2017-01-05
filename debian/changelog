@@ -1,10 +1,10 @@
-astroid (1.4.9-1) UNRELEASED; urgency=medium
+astroid (1.4.9-1) unstable; urgency=medium
 
   * New upstream release
   * debian/copyright
     - extend packaging copyright years
 
- -- Sandro Tosi <morph@debian.org>  Thu, 05 Jan 2017 13:47:25 -0500
+ -- Sandro Tosi <morph@debian.org>  Thu, 05 Jan 2017 13:48:17 -0500
 
 astroid (1.4.8-1) unstable; urgency=medium
 
