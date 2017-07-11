@@ -1,9 +1,21 @@
-.. image:: https://drone.io/bitbucket.org/logilab/astroid/status.png
-    :alt: drone.io Build Status
-    :target: https://drone.io/bitbucket.org/logilab/astroid
-
 Astroid
 =======
+
+.. image:: https://travis-ci.org/PyCQA/astroid.svg?branch=master
+    :target: https://travis-ci.org/PyCQA/astroid
+
+.. image:: https://ci.appveyor.com/api/projects/status/co3u42kunguhbh6l/branch/master?svg=true
+    :alt: AppVeyor Build Status
+    :target: https://ci.appveyor.com/project/PCManticore/astroid
+
+.. image:: https://coveralls.io/repos/github/PyCQA/astroid/badge.svg?branch=master
+    :target: https://coveralls.io/github/PyCQA/astroid?branch=master
+
+.. image:: https://readthedocs.org/projects/astroid/badge/?version=latest
+    :target: http://astroid.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+
 
 What's this?
 ------------
@@ -20,15 +32,6 @@ node classes have additional methods and attributes for different
 usages.  They include some support for static inference and local name
 scopes.  Furthermore, astroid builds partial trees by inspecting living
 objects.
-
-Main modules are:
-
-* `bases`, `node_classses` and `scoped_nodes` contain the classes for the
-  different type of nodes of the tree.
-
-* the `manager` contains a high level object to get astroid trees from
-  source files and living objects. It maintains a cache of previously
-  constructed tree for quick access.
 
 
 Installation
