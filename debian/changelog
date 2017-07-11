@@ -1,3 +1,13 @@
+astroid (1.5.3-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+  * d/control
+    - Manually add build-depends and depends on python-singledispatch and
+      just build-depends on python-enum34 to the Python 2 package, as they are
+      missed by dh-python thanks to bug #834133.
+
+ -- Michael Hudson-Doyle <michael.hudson@ubuntu.com>  Wed, 12 Jul 2017 09:24:08 +1200
+
 astroid (1.4.9-1) unstable; urgency=medium
 
   * New upstream release

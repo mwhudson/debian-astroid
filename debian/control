@@ -3,7 +3,7 @@ Section: python
 Priority: optional
 Maintainer: Sandro Tosi <morph@debian.org>
 Uploaders: Debian Python Modules Team <python-modules-team@lists.alioth.debian.org>
-Build-Depends: debhelper (>= 9.0.0), python, python3, dh-python, python-setuptools, python3-setuptools, python-nose, python3-nose, python-wrapt, python3-wrapt, python-lazy-object-proxy, python3-lazy-object-proxy
+Build-Depends: debhelper (>= 9.0.0), python, python3, dh-python, python-setuptools, python3-setuptools, python-nose, python3-nose, python-wrapt, python3-wrapt, python-lazy-object-proxy, python3-lazy-object-proxy, python-singledispatch, python-enum34
 Standards-Version: 3.9.8
 Homepage: http://www.astroid.org/
 Vcs-Git: https://anonscm.debian.org/git/python-modules/packages/astroid.git
@@ -11,7 +11,7 @@ Vcs-Browser: https://anonscm.debian.org/cgit/python-modules/packages/astroid.git
 
 Package: python-astroid
 Architecture: all
-Depends: ${python:Depends}, ${misc:Depends}, python-six
+Depends: ${python:Depends}, ${misc:Depends}, python-six, python-singledispatch
 Description: rebuild a new abstract syntax tree from Python's AST
  The aim of this module is to provide a common base representation of
  Python source code for projects such as pychecker, pyreverse,
